@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { use } from 'react'
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useCallback } from 'react';
+import Divider from './assets/pattern-divider-desktop.svg';
+import Dice from './assets/icon-dice.svg';
 
 const FetchData = () => {
     const [quote, setQuote] = useState(null);
@@ -13,19 +16,26 @@ const FetchData = () => {
         setRandomNumber(newRandomNumber);
       };
 
+      const fetchQuote = useCallback(async() => {
+        try {
+          const response = await fetch('https://catfact.ninja/fact');
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          const data = await response.json();
+          setQuote(data);
+          generateRandomNumber();
+        } catch (error) {
+          console.error("Error fetching quote:", error);
+        } finally {
+          setLoading(false);
+        }
+      }, []);
+
 
     useEffect(()=> {
-        generateRandomNumber();
-
-        fetch('https://catfact.ninja/fact')
-       .then(response => response.json())
-       .then(data => {setQuote(data);
-        setLoading(false);
-       })
-       .catch(error => {console.error('Error:', error);
-        setLoading(false);
-       });
-    }, [])
+        fetchQuote();
+    }, [ fetchQuote]);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -39,10 +49,10 @@ const FetchData = () => {
         {quote ? quote.fact : "Loading..."}
             "
         </p>
-        <img src="../public/pattern-divider-desktop.svg" className='mt-5 mb-5'/>
+        <img src={Divider} className='mt-5 mb-5'/>
 
-        <div className='bg-[#52ffa8] w-14 rounded-full h-14 absolute -bottom-7 grid place-items-center'>
-            <img src="../public/icon-dice.svg" alt="" />
+        <div className='bg-[#52ffa8] w-14 rounded-full h-14 absolute -bottom-7 grid place-items-center cursor-pointer shadow-[0_0_10px_#52ffa8] hover:shadow-[0_0_30px_#52ffa8] transition-shadow duration-200' onClick={fetchQuote}>
+            <img src={Dice} alt="" />
         </div>
     </div>
   )
